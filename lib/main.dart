@@ -20,15 +20,15 @@ class MyApp extends StatelessWidget {
         // or simply save your changes to "hot reload" in a Flutter IDE).
         // Notice that the counter didn't reset back to zero; the application
         // is not restarted.
-        primarySwatch: Colors.blue,
+        primarySwatch: Colors.blueGrey,
       ),
-      home: MyHomePage(title: 'Flutter Demo Home Page'),
+      home: MyHomePage(title: 'Flutter Demo 6 Home Page'),
     );
   }
 }
 
 class MyHomePage extends StatefulWidget {
-  MyHomePage({Key key, this.title}) : super(key: key);
+  MyHomePage({Key? key, this.title}) : super(key: key);
 
   // This widget is the home page of your application. It is stateful, meaning
   // that it has a State object (defined below) that contains fields that affect
@@ -39,7 +39,7 @@ class MyHomePage extends StatefulWidget {
   // used by the build method of the State. Fields in a Widget subclass are
   // always marked "final".
 
-  final String title;
+  final String? title;
 
   @override
   _MyHomePageState createState() => _MyHomePageState();
@@ -59,6 +59,23 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
+  void _decrementCounter() {
+    setState(() {
+      // This call to setState tells the Flutter framework that something has
+      // changed in this State, which causes it to rerun the build method below
+      // so that the display can reflect the updated values. If we changed
+      // _counter without calling setState(), then the build method would not be
+      // called again, and so nothing would appear to happen.
+      _counter--;
+    });
+  }
+
+  void _resetToZero() {
+    setState(() {
+      _counter=0;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     // This method is rerun every time setState is called, for instance as done
@@ -71,7 +88,7 @@ class _MyHomePageState extends State<MyHomePage> {
       appBar: AppBar(
         // Here we take the value from the MyHomePage object that was created by
         // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
+        title: Text(widget.title!),
       ),
       body: Center(
         // Center is a layout widget. It takes a single child and positions it
@@ -94,20 +111,75 @@ class _MyHomePageState extends State<MyHomePage> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             Text(
-              'You have pushed the button this many times:',
+              'You have clicked the button this many times:',
             ),
             Text(
               '$_counter',
               style: Theme.of(context).textTheme.headline4,
             ),
+            Align(
+              /*
+              child: FloatingActionButton(
+              onPressed: _incrementCounter,
+              tooltip: 'Decrement',
+              child: Icon(Icons.remove),
+              ),
+              */
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: <Widget>[
+                  FloatingActionButton(
+                    onPressed: _decrementCounter,
+                    child: Icon(Icons.navigate_before),
+                  ),
+                  FloatingActionButton(
+                    onPressed: _resetToZero,
+                    child: Icon(Icons.radio_button_unchecked),
+                  ),
+                  FloatingActionButton(
+                    onPressed: _incrementCounter,
+                    child: Icon(Icons.navigate_next),
+                  )
+                ],
+              ),
+            ),
           ],
         ),
       ),
+      /*
       floatingActionButton: FloatingActionButton(
         onPressed: _incrementCounter,
         tooltip: 'Increment',
         child: Icon(Icons.add),
       ), // This trailing comma makes auto-formatting nicer for build methods.
+      */
+
+      /*
+      // Buttons on bottom
+      floatingActionButtonLocation:
+              FloatingActionButtonLocation.centerDocked,
+      floatingActionButton: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: <Widget>[
+                FloatingActionButton(
+                  onPressed: _decrementCounter,
+                  child: Icon(Icons.navigate_before),
+                ),
+                FloatingActionButton(
+                  onPressed: _resetToZero,
+                  child: Icon(Icons.radio_button_unchecked),
+                ),
+                FloatingActionButton(
+                  onPressed: _incrementCounter,
+                  child: Icon(Icons.navigate_next),
+                )
+              ],
+            ),
+          )
+        */
+
     );
   }
 }
