@@ -1,0 +1,48 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "build",
+            "type": "process",
+            "command": "flutter",
+            "args": [
+                "run",
+                "-d",
+                "all"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}/flutter_application_1/"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "clean",
+            "type": "shell",
+            "linux": {
+                "command": "flutter",
+                "args": [
+                    "clean",
+                ]
+            },
+            "osx": {
+                "command": "flutter",
+                "args": [
+                    "clean",
+                ]
+            },
+            "windows": {
+                "command": "flutter",
+                "args": [
+                    "clean",
+                ]
+            },
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": [],
+            "group": {
+                "kind": "build",
+            }
+        }
+    ]
+}
