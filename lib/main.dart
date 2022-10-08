@@ -1,7 +1,23 @@
 import 'package:flutter/material.dart';
 
-void main() {
+//firebase
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
+
+// database
+import 'package:firebase_database/firebase_database.dart';
+
+void main() async {
+  /*
+  https://stackoverflow.com/questions/63492211/no-firebase-app-default-has-been-created-call-firebase-initializeapp-in
+  Fourth Example
+  */
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   runApp(MyApp());
+
 }
 
 class MyApp extends StatelessWidget {
@@ -46,9 +62,11 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  FirebaseDatabase database = FirebaseDatabase.instance;
+
   int _counter = 0;
 
-  void _incrementCounter() {
+  void _incrementCounter() async {
     setState(() {
       // This call to setState tells the Flutter framework that something has
       // changed in this State, which causes it to rerun the build method below
@@ -57,17 +75,30 @@ class _MyHomePageState extends State<MyHomePage> {
       // called again, and so nothing would appear to happen.
       _counter++;
     });
+    DatabaseReference ref = FirebaseDatabase.instance.ref("users/" + _counter.toString());
+    await ref.set({
+      "name": "John",
+      "age": _counter,
+      "address": {
+        "line1": "100 Mountain View"
+      }
+    });
   }
 
-  void _decrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter--;
-    });
+  void _decrementCounter() async {
+    if(_counter > 0)
+    {
+      DatabaseReference ref = FirebaseDatabase.instance.ref("users/" + _counter.toString());
+      await ref.remove();
+      setState(() {
+        // This call to setState tells the Flutter framework that something has
+        // changed in this State, which causes it to rerun the build method below
+        // so that the display can reflect the updated values. If we changed
+        // _counter without calling setState(), then the build method would not be
+        // called again, and so nothing would appear to happen.
+        _counter--;
+      });
+    }
   }
 
   void _resetToZero() {
