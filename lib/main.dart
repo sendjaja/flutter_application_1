@@ -1,11 +1,14 @@
-import 'package:flutter/material.dart';
-
-//firebase
-import 'package:firebase_core/firebase_core.dart';
-import 'firebase_options.dart';
-
-// database
+import 'dart:async';                                     // new
+import 'package:firebase_auth/firebase_auth.dart'        // new
+    hide EmailAuthProvider, PhoneAuthProvider;           // new
+import 'package:firebase_core/firebase_core.dart';       // new
 import 'package:firebase_database/firebase_database.dart';
+import 'package:firebase_ui_auth/firebase_ui_auth.dart'; // new
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';                 // new
+import 'firebase_options.dart';                          // new
+import 'src/authentication.dart';                        // new
+import 'src/widgets.dart';
 
 void main() async {
   /*
@@ -13,15 +16,139 @@ void main() async {
   Fourth Example
   */
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
-  runApp(MyApp());
 
+  //authentication demo
+  runApp(ChangeNotifierProvider(
+    create: (context) => ApplicationState(),
+    builder: ((context, child) => const App()),
+  ));
 }
 
+class App extends StatelessWidget {
+  const App({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      //Start adding here
+      initialRoute: '/home',
+      routes: {
+        '/home': (context) {
+          return const HomePage();
+        },
+        '/sign-in': ((context) {
+          return SignInScreen(
+            actions: [
+              ForgotPasswordAction(((context, email) {
+                Navigator.of(context)
+                    .pushNamed('/forgot-password', arguments: {'email': email});
+              })),
+              AuthStateChangeAction(((context, state) {
+                if (state is SignedIn || state is UserCreated) {
+                  var user = (state is SignedIn)
+                      ? state.user
+                      : (state as UserCreated).credential.user;
+                  if (user == null) {
+                    return;
+                  }
+                  if (state is UserCreated) {
+                    user.updateDisplayName(user.email!.split('@')[0]);
+                  }
+                  if (!user.emailVerified) {
+                    user.sendEmailVerification();
+                    const snackBar = SnackBar(
+                        content: Text(
+                            'Please check your email to verify your email address'));
+                    ScaffoldMessenger.of(context).showSnackBar(snackBar);
+                  }
+                  Navigator.of(context).pushReplacementNamed('/home');
+                }
+              })),
+            ],
+          );
+        }),
+        '/forgot-password': ((context) {
+          final arguments = ModalRoute.of(context)?.settings.arguments
+              as Map<String, dynamic>?;
+
+          return ForgotPasswordScreen(
+            email: arguments?['email'] as String,
+            headerMaxExtent: 200,
+          );
+        }),
+        '/profile': ((context) {
+          return ProfileScreen(
+            providers: [],
+            actions: [
+              SignedOutAction(
+                ((context) {
+                  Navigator.of(context).pushReplacementNamed('/home');
+                }),
+              ),
+            ],
+            children: <Widget>[
+              Text(
+              'You have clicked the button this many times:',
+            ),
+            Text(
+              //'$_counter',
+              'test',
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
+            Align(
+              /*
+              child: FloatingActionButton(
+              onPressed: _incrementCounter,
+              tooltip: 'Decrement',
+              child: Icon(Icons.remove),
+              ),
+              */
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                /*
+                children: <Widget>[
+                  FloatingActionButton(
+                    onPressed: _decrementCounter,
+                    child: Icon(Icons.navigate_before),
+                  ),
+                  FloatingActionButton(
+                    onPressed: _resetToZero,
+                    child: Icon(Icons.radio_button_unchecked),
+                  ),
+                  FloatingActionButton(
+                    onPressed: _incrementCounter,
+                    child: Icon(Icons.navigate_next),
+                  )
+                ],
+                */
+              ),
+            ),
+            ],
+          );
+        })
+      },
+      // end adding here
+      title: 'NMRA1',
+      theme: ThemeData(
+        buttonTheme: Theme.of(context).buttonTheme.copyWith(
+              highlightColor: Colors.black,
+            ),
+        primarySwatch: Colors.blueGrey,
+        // textTheme: GoogleFonts.robotoTextTheme(
+        //   Theme.of(context).textTheme,
+        // ),
+        visualDensity: VisualDensity.adaptivePlatformDensity,
+      ),
+    );
+  }
+}
+
+/*
 class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
   // This widget is the root of your application.
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -211,6 +338,80 @@ class _MyHomePageState extends State<MyHomePage> {
           )
         */
 
+    );
+  }
+}
+*/
+
+class ApplicationState extends ChangeNotifier {
+  ApplicationState() {
+    init();
+  }
+
+  bool _loggedIn = false;
+  bool get loggedIn => _loggedIn;
+
+  Future<void> init() async {
+    await Firebase.initializeApp(
+        options: DefaultFirebaseOptions.currentPlatform);
+
+    FirebaseUIAuth.configureProviders([
+      EmailAuthProvider(),
+    ]);
+
+    FirebaseAuth.instance.userChanges().listen((user) {
+      if (user != null) {
+        _loggedIn = true;
+        //FirebaseDatabase database = FirebaseDatabase.instance;
+        // DatabaseReference ref = FirebaseDatabase.instance.ref("users/" + user.email.toString().replaceAll('.', '_dot_'));
+        //     ref.set({
+        //       "name": "John",
+        //       "email": user.email.toString(),
+        //       "address": {
+        //         "line1": "100 Mountain View"
+        //       }
+        //     });
+      } else {
+        _loggedIn = false;
+      }
+      notifyListeners();
+    });
+  }
+}
+
+class HomePage extends StatelessWidget {
+  const HomePage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<ApplicationState>(
+      builder: (context, appState, child) => Scaffold(
+        appBar: AppBar(
+          title: const Text('Title: NMRA'),
+        ),
+        body: ListView(
+          children: <Widget>[
+            //Image.asset('assets/codelab.png'),
+            const SizedBox(height: 8),
+            const IconAndDetail(Icons.train, 'NMRA'),
+            Consumer<ApplicationState>(
+              builder: (context, appState, _) => AuthFunc(
+                loggedIn: appState.loggedIn,
+                signOut: () {
+                  FirebaseAuth.instance.signOut();
+                }
+              ),
+            ),
+            const Divider(
+              height: 8,
+              thickness: 1,
+              indent: 8,
+              endIndent: 8,
+              color: Colors.grey,
+            ),
+          ],
+        ),
+      )
     );
   }
 }
